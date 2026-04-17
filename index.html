@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Painel de Produção Audiovisual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0ede8;--surface:#fff;--border:#ddd9d2;--border-strong:#c8c3bc;
+  --text:#1a1814;--text-muted:#7a746c;--text-faint:#b0aaa2;
+  --red:#c0392b;--red-bg:#fdf1f0;--red-bar:#e05c4e;
+  --amber:#b7640a;--amber-bg:#fef6ec;--amber-bar:#e8903a;
+  --green:#2a6b3c;--green-bg:#eef7f1;--green-bar:#3a9e5a;
+  --accent:#2c4a7c;--r-sm:6px;--r-md:10px;--r-lg:16px;
+  --font:'Figtree',sans-serif;--mono:'Space Mono',monospace;
+}
+html{font-size:15px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Header ── */
+.hdr{background:var(--text);color:#fff;padding:1.1rem 1.75rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;border-bottom:2px solid #2e2a24;gap:1rem}
+.hdr-left{display:flex;flex-direction:column;gap:2px}
+.hdr h1{font-family:var(--mono);font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.hdr-sub{font-family:var(--mono);font-size:.62rem;color:#888;letter-spacing:.03em}
+.hdr-r{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.badge{font-family:var(--mono);font-size:.68rem;letter-spacing:.04em;padding:4px 10px;border-radius:99px;transition:all .3s;white-space:nowrap}
+.badge.ok    {background:rgba(58,158,90,.18);color:#6fcf97}
+.badge.saving{background:rgba(232,144,58,.18);color:#e8903a}
+.badge.error {background:rgba(224,92,78,.18);color:#e05c4e}
+.badge.local {background:rgba(176,170,162,.18);color:#b0aaa2}
+.btn-cfg{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#ccc;font-family:var(--mono);font-size:.68rem;padding:4px 10px;border-radius:var(--r-sm);cursor:pointer;letter-spacing:.04em;transition:all .15s;white-space:nowrap}
+.btn-cfg:hover{background:rgba(255,255,255,.18);color:#fff}
+
+/* ── Body ── */
+.body{padding:1.75rem 1.5rem;max-width:1500px;margin:0 auto}
+
+/* ── Banner ── */
+.banner{background:#fffbf0;border:1.5px solid #f0d080;border-radius:var(--r-lg);padding:1.1rem 1.4rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:12px}
+.banner.hidden{display:none}
+.banner h3{font-size:.9rem;font-weight:600;color:#8a6200;margin-bottom:4px}
+.banner p{font-size:.8rem;color:#a07820;line-height:1.5}
+.bacts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.bb{font-size:.8rem;font-weight:600;padding:6px 14px;border-radius:var(--r-sm);cursor:pointer;border:none;transition:all .15s}
+.bb.p{background:var(--text);color:#fff} .bb.p:hover{background:#333}
+.bb.s{background:#f0e8cc;color:#8a6200}  .bb.s:hover{background:#e8d8a8}
+
+/* ── Overall ── */
+.overall{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.25rem}
+.ov-lbl{font-family:var(--mono);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap}
+.ov-track{flex:1;height:10px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.ov-fill{height:100%;border-radius:99px;background:var(--green-bar);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.ov-pct{font-family:var(--mono);font-size:.85rem;font-weight:700;min-width:42px;text-align:right}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1px solid var(--border-strong);background:var(--surface);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+table{width:100%;border-collapse:collapse;min-width:820px;table-layout:fixed}
+thead th{background:var(--text);color:#fff;padding:13px 16px;font-family:var(--mono);font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border-right:1px solid #2e2a24;border-bottom:2px solid #111;text-align:left}
+thead th:first-child{width:150px}
+thead th:last-child{border-right:none;width:42px}
+.wkth{text-align:center!important}
+.wkdate{display:block;font-family:var(--font);font-size:.66rem;font-weight:400;color:#888;margin-top:2px;text-transform:none;letter-spacing:0}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:not(.foot):hover td{background:#faf9f7}
+
+td.lbl{background:#f7f5f1;border-right:2px solid var(--border-strong);border-bottom:1px solid var(--border);padding:13px 14px;vertical-align:middle}
+.sname{font-family:var(--mono);font-size:.74rem;font-weight:700;letter-spacing:.03em;word-break:break-word;line-height:1.35}
+.sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;margin-bottom:1px;flex-shrink:0}
+
+td.cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px;vertical-align:top;transition:background .15s;position:relative}
+td.cell:last-child{border-right:none}
+td.cell.empty{background:repeating-linear-gradient(-45deg,transparent,transparent 10px,rgba(0,0,0,.018) 10px,rgba(0,0,0,.018) 20px)}
+td.cell.drag-over{background:#eef4ff!important;outline:2px dashed var(--accent);outline-offset:-2px}
+
+/* ── Progress ── */
+.ptrack{width:100%;height:8px;border-radius:99px;background:#ece9e4;overflow:hidden;border:1px solid var(--border);margin-bottom:5px}
+.pfill{height:100%;border-radius:99px;transition:width .45s cubic-bezier(.4,0,.2,1),background .45s}
+.pmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ppct{font-family:var(--mono);font-size:.66rem;font-weight:700;border-radius:4px;padding:2px 6px}
+.ppct.none{background:var(--red-bg);color:var(--red)}
+.ppct.some{background:var(--amber-bg);color:var(--amber)}
+.ppct.all {background:var(--green-bg);color:var(--green)}
+.pcnt{font-size:.66rem;color:var(--text-faint);font-family:var(--mono)}
+
+/* ── Task rows ── */
+.tlist{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.trow{display:flex;align-items:flex-start;gap:6px;padding:5px 7px;border-radius:var(--r-sm);transition:background .12s,box-shadow .15s;border:1px solid transparent;background:var(--surface);position:relative}
+.trow:hover{background:#f3f0ec;border-color:var(--border)}
+.drag-handle{cursor:grab;color:var(--text-faint);font-size:13px;flex-shrink:0;margin-top:2px;line-height:1;padding:0 2px;transition:color .15s;user-select:none}
+.drag-handle:hover{color:var(--text-muted)}
+.drag-handle:active{cursor:grabbing}
+.trow[draggable=true]{cursor:default}
+.trow.dragging{opacity:.4;box-shadow:0 4px 16px rgba(0,0,0,.18);border-color:var(--border-strong)}
+.trow.drop-above{border-top:2px solid var(--accent)!important;margin-top:-1px}
+.trow.drop-below{border-bottom:2px solid var(--accent)!important;margin-bottom:-1px}
+.trow input[type=checkbox]{width:14px;height:14px;flex-shrink:0;cursor:pointer;accent-color:var(--green-bar);margin-top:2px}
+.ttxt{font-size:.8rem;line-height:1.4;flex:1;color:var(--text);user-select:none;word-break:break-word}
+.trow.done .ttxt{text-decoration:line-through;color:var(--text-faint)}
+.ttxt-edit{font-size:.8rem;line-height:1.4;flex:1;color:var(--text);border:none;outline:none;background:transparent;font-family:var(--font);padding:0;resize:none;border-bottom:1.5px solid var(--accent);min-width:0}
+.trow-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-top:1px}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:.72rem;padding:0 1px;line-height:1;opacity:0;transition:opacity .15s,color .15s;color:var(--text-faint)}
+.trow:hover .icon-btn{opacity:1}
+.icon-btn.edit:hover{color:var(--accent)}
+.icon-btn.del:hover{color:var(--red)}
+.icon-btn.save{color:var(--green);opacity:1!important}
+.icon-btn.cancel{color:var(--text-muted);opacity:1!important}
+
+/* ── Add task ── */
+.abtn{background:none;border:1px dashed var(--border-strong);border-radius:var(--r-sm);width:100%;padding:5px 8px;font-size:.74rem;color:var(--text-faint);cursor:pointer;text-align:left;transition:all .15s;font-family:var(--font)}
+.abtn:hover{border-color:var(--accent);color:var(--accent);background:#f0f4fa}
+.abtn.center{text-align:center;padding:10px}
+
+/* ── Footer row ── */
+.foot td{padding:10px 14px;border-top:2px solid var(--border-strong);background:#f7f5f1}
+.foot td:last-child{background:#f7f5f1}
+.addrow{font-family:var(--mono);font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:none;border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:5px 12px;cursor:pointer;color:var(--text-muted);transition:all .15s}
+.addrow:hover{background:var(--text);color:#fff;border-color:var(--text)}
+td.act{background:#f7f5f1;border-bottom:1px solid var(--border);padding:0 8px;vertical-align:middle}
+
+/* ── Modals ── */
+.overlay{position:fixed;inset:0;background:rgba(15,12,8,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border-strong);padding:1.5rem;width:420px;max-width:92vw;transform:translateY(12px) scale(.97);transition:transform .2s cubic-bezier(.4,0,.2,1);box-shadow:0 12px 40px rgba(0,0,0,.18)}
+.overlay.open .modal{transform:translateY(0) scale(1)}
+.mtitle{font-family:var(--mono);font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px}
+.modal label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:5px;margin-top:12px}
+.modal label:first-of-type{margin-top:0}
+.modal input[type=text],.modal input[type=password]{width:100%;font-family:var(--font);font-size:.9rem;padding:9px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
+.modal input:focus{border-color:var(--accent);background:#fff}
+.mhint{font-size:.74rem;color:var(--text-faint);margin-top:5px;line-height:1.55}
+.mhint a{color:var(--accent)}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.btn{font-family:var(--font);font-size:.85rem;font-weight:600;padding:8px 18px;border-radius:var(--r-sm);cursor:pointer;border:1px solid var(--border-strong);background:var(--bg);color:var(--text-muted);transition:all .15s}
+.btn:hover{background:#e8e4de;color:var(--text)}
+.btn.p{background:var(--text);color:#fff;border-color:var(--text)} .btn.p:hover{background:#333}
+.btn.d{background:var(--red-bg);color:var(--red);border-color:#f5c4c0} .btn.d:hover{background:#f9dbd9}
+
+/* ── Dots ── */
+.d-0{background:#e8903a} /* Ideação — laranja */
+.d-1{background:#4a80d4} /* Pré-produção — azul */
+.d-2{background:#8b5cf6} /* Produção — roxo */
+.d-3{background:#2a9a5c} /* Pós-produção — verde */
+.d-4{background:#e04b7a} /* Distribuição — rosa */
+.d-5{background:#0e9daa}
+
+.edw{cursor:text;border-radius:3px;padding:1px 2px;outline:none}
+.edw:focus{background:rgba(255,255,255,.15);outline:1px dashed rgba(255,255,255,.5)}
+.edb{cursor:text;border-radius:3px;padding:1px 2px;outline:none}
+.edb:focus{background:rgba(0,0,0,.06);outline:1px dashed var(--border-strong)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:99px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-left">
+    <h1>&#127916; Produção Audiovisual</h1>
+    <span class="hdr-sub">painel de acompanhamento de projeto</span>
+  </div>
+  <div class="hdr-r">
+    <span class="badge local" id="sync-badge">&#9679; local</span>
+    <button class="btn-cfg" onclick="openCfg()">&#9729; GitHub Sync</button>
+  </div>
+</header>
+
+<main class="body">
+
+  <div class="banner" id="banner">
+    <span style="font-size:1.2rem;flex-shrink:0;margin-top:2px">&#9729;&#65039;</span>
+    <div>
+      <h3>Sincronização em nuvem não configurada</h3>
+      <p>Os dados ficam salvos só neste navegador. Configure o GitHub Gist para acessar de qualquer computador.</p>
+      <div class="bacts">
+        <button class="bb p" onclick="openCfg()">Configurar agora</button>
+        <button class="bb s" onclick="dismissBanner()">Usar só localmente</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overall">
+    <span class="ov-lbl">Progresso geral</span>
+    <div class="ov-track"><div class="ov-fill" id="ofill"></div></div>
+    <span class="ov-pct" id="opct">0%</span>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Modal: add -->
+<div class="overlay" id="ov-add">
+  <div class="modal">
+    <div class="mtitle" id="add-title">Nova tarefa</div>
+    <input type="text" id="add-input" autocomplete="off"/>
+    <div class="mbtns">
+      <button class="btn" onclick="closeAdd()">Cancelar</button>
+      <button class="btn p" onclick="confirmAdd()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: GitHub config -->
+<div class="overlay" id="ov-cfg">
+  <div class="modal">
+    <div class="mtitle">&#9729; Configurar GitHub Sync</div>
+    <label>Token do GitHub (Personal Access Token)</label>
+    <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"/>
+    <p class="mhint">Acesse <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank">github.com/settings/tokens/new</a>, marque apenas <strong>gist</strong> e gere o token.</p>
+    <label>ID do Gist <span style="font-weight:400;color:var(--text-faint)">(deixe vazio na 1ª vez)</span></label>
+    <input type="text" id="cfg-gist" placeholder="Será preenchido automaticamente..." autocomplete="off"/>
+    <p class="mhint">Na primeira vez deixe vazio — o Gist é criado automaticamente.</p>
+    <div class="mbtns">
+      <button class="btn d" onclick="clearCfg()">Desconectar</button>
+      <button class="btn" onclick="closeCfg()">Cancelar</button>
+      <button class="btn p" onclick="saveCfgAndSync()">Salvar e Sincronizar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Constants ── */
+const LKEY='av_tracker_v1', CKEY='av_tracker_cfg', GFILE='av_tracker_data.json';
+const DOTS=['d-0','d-1','d-2','d-3','d-4','d-5'];
+
+/* ── Default State ── */
+function defaultState(){
+  return{
+    weeks:[
+      {label:'Semana 1',     date:''},
+      {label:'Semana 2',date:''},
+      {label:'Semana 3',    date:''},
+      {label:'Semana 4', date:''},
+    ],
+    stages:[
+      {label:'Ideação'},
+      {label:'Pré-produção'},
+      {label:'Produção'},
+      {label:'Pós-produção'},
+      {label:'Distribuição'},
+    ],
+    cells:{
+      /* ── Ideação → Semana 1 ── */
+      '0-0':[
+        {text:'Definir a ideia central do projeto',done:false},
+        {text:'Definir tema e mensagem',done:false},
+        {text:'Escolher o formato (curta, série, documentário...)',done:false},
+        {text:'Escrever sinopse',done:false},
+        {text:'Definir público-alvo',done:false},
+        {text:'Criar argumento ou conceito narrativo',done:false},
+        {text:'Fazer pesquisa de referências estéticas e narrativas',done:false},
+        {text:'Definir escopo do projeto (tamanho, duração, viabilidade)',done:false},
+      ],
+      /* ── Pré-produção → Semana 1 (início) ── */
+      '1-0':[
+        {text:'Escrever roteiro',done:false},
+        {text:'Fazer decupagem do roteiro',done:false},
+        {text:'Definir locações',done:false},
+      ],
+      /* ── Pré-produção → Semana 2 (principal) ── */
+      '1-1':[
+        {text:'Montar equipe técnica',done:false},
+        {text:'Selecionar elenco',done:false},
+        {text:'Definir direção de arte / figurino',done:false},
+        {text:'Fazer storyboard ou shotlist',done:false},
+        {text:'Montar cronograma de filmagem',done:false},
+        {text:'Levantar equipamentos necessários',done:false},
+        {text:'Organizar autorizações e permissões',done:false},
+        {text:'Planejar logística de transporte e alimentação',done:false},
+      ],
+      /* ── Produção → Semana 2 (preparação set) ── */
+      '2-1':[
+        {text:'Montar equipamentos',done:false},
+        {text:'Preparar locação',done:false},
+        {text:'Organizar figurino e maquiagem',done:false},
+      ],
+      /* ── Produção → Semana 3 (filmagem) ── */
+      '2-2':[
+        {text:'Passar ensaio de cena',done:false},
+        {text:'Fazer gravação das cenas',done:false},
+        {text:'Registrar áudio direto',done:false},
+        {text:'Fazer controle de continuidade',done:false},
+        {text:'Gerenciar backup dos arquivos gravados',done:false},
+        {text:'Registrar relatório de filmagem',done:false},
+      ],
+      /* ── Pós-produção → Semana 3 (início montagem) ── */
+      '3-2':[
+        {text:'Organizar material gravado',done:false},
+        {text:'Selecionar takes',done:false},
+        {text:'Fazer montagem inicial',done:false},
+      ],
+      /* ── Pós-produção → Semana 4 (finalização) ── */
+      '3-3':[
+        {text:'Fazer edição final',done:false},
+        {text:'Tratamento de cor',done:false},
+        {text:'Tratamento de áudio',done:false},
+        {text:'Inserir trilha sonora',done:false},
+        {text:'Criar vinhetas e créditos',done:false},
+        {text:'Exportar versão final',done:false},
+      ],
+      /* ── Distribuição → Semana 4 ── */
+      '4-3':[
+        {text:'Criar materiais de divulgação (cartaz, teaser, trailer)',done:false},
+        {text:'Inscrever em festivais ou mostras',done:false},
+        {text:'Publicar em plataformas online',done:false},
+        {text:'Divulgar em redes sociais',done:false},
+        {text:'Enviar para imprensa ou parceiros',done:false},
+        {text:'Organizar exibição pública ou lançamento',done:false},
+      ],
+    }
+  };
+}
+
+/* ── State & Config ── */
+let S,CFG;
+try{S=JSON.parse(localStorage.getItem(LKEY))||defaultState();}catch(e){S=defaultState();}
+try{CFG=JSON.parse(localStorage.getItem(CKEY))||{};}catch(e){CFG={};}
+
+function saveLocal(){localStorage.setItem(LKEY,JSON.stringify(S));}
+function saveCfgLocal(){localStorage.setItem(CKEY,JSON.stringify(CFG));}
+
+/* ── Sync Status ── */
+function setStatus(type,txt){const el=document.getElementById('sync-badge');el.className='badge '+type;el.textContent='● '+txt;}
+
+let saveTimer=null;
+function save(){
+  saveLocal();
+  if(CFG.token){clearTimeout(saveTimer);saveTimer=setTimeout(gistSave,800);}
+}
+
+/* ── GitHub Gist ── */
+async function gistSave(){
+  if(!CFG.token)return;
+  setStatus('saving','salvando...');
+  const content=JSON.stringify(S,null,2);
+  try{
+    if(!CFG.gistId){
+      const r=await fetch('https://api.github.com/gists',{method:'POST',headers:{'Authorization':'token '+CFG.token,'Content-Type':'application/json'},body:JSON.stringify({description:'Painel Audiovisual',public:false,files:{[GFILE]:{content}}})});
+      if(!r.ok)throw new Error(r.status);
+      const d=await r.json();CFG.gistId=d.id;saveCfgLocal();
+      document.getElementById('cfg-gist').value=CFG.gistId;
+    }else{
+      const r=await fetch('https://api.github.com/gists/'+CFG.gistId,{method:'PATCH',headers:{'Authorization':'token '+CFG.token,'Content-Type':'application/json'},body:JSON.stringify({files:{[GFILE]:{content}}})});
+      if(!r.ok)throw new Error(r.status);
+    }
+    setStatus('ok','salvo na nuvem ✓');
+  }catch(e){setStatus('error','erro ao salvar');console.error(e);}
+}
+
+async function gistLoad(){
+  if(!CFG.token||!CFG.gistId)return false;
+  setStatus('saving','carregando...');
+  try{
+    const r=await fetch('https://api.github.com/gists/'+CFG.gistId,{headers:{'Authorization':'token '+CFG.token}});
+    if(!r.ok)throw new Error(r.status);
+    const d=await r.json();const f=d.files[GFILE];
+    if(f){S=JSON.parse(f.content);saveLocal();}
+    setStatus('ok','sincronizado ✓');return true;
+  }catch(e){setStatus('error','erro ao carregar');console.error(e);return false;}
+}
+
+/* ── Drag state ── */
+let drag={key:null,ti:null};
+
+/* ── Helpers ── */
+function barColor(p){return p===0?'#e05c4e':p>=100?'#3a9e5a':'#e8903a';}
+function pClass(p){return p===0?'none':p>=100?'all':'some';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function updateOverall(){
+  let t=0,d=0;Object.values(S.cells).forEach(ts=>{t+=ts.length;d+=ts.filter(x=>x.done).length;});
+  const p=t===0?0:Math.round(d/t*100);
+  document.getElementById('ofill').style.width=p+'%';
+  document.getElementById('opct').textContent=p+'%';
+}
+
+/* ── Render ── */
+function render(){renderHead();renderBody();updateOverall();}
+
+function renderHead(){
+  let h='<tr><th>Etapa</th>';
+  S.weeks.forEach((w,wi)=>{
+    h+=`<th class="wkth"><span class="edw" contenteditable="true"
+      onblur="renameWeek(${wi},this.innerText)"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+    >${esc(w.label)}</span>${w.date?`<span class="wkdate">${esc(w.date)}</span>`:''}</th>`;
+  });
+  h+='<th></th></tr>';
+  document.getElementById('thead').innerHTML=h;
+}
+
+function renderBody(){
+  let h='';
+  S.stages.forEach((st,si)=>{
+    const dot=DOTS[si%DOTS.length];
+    h+=`<tr>
+      <td class="lbl">
+        <span class="sdot ${dot}"></span>
+        <span class="sname edb" contenteditable="true"
+          onblur="renameStage(${si},this.innerText)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${esc(st.label)}</span>
+      </td>`;
+    S.weeks.forEach((w,wi)=>{
+      const key=`${si}-${wi}`;
+      const tasks=S.cells[key]||[];
+      const total=tasks.length,done=tasks.filter(t=>t.done).length;
+      const pct=total===0?0:Math.round(done/total*100);
+      h+=`<td class="cell${total===0?' empty':''}" data-key="${key}"
+        ondragover="cellDragOver(event,'${key}')"
+        ondragleave="cellDragLeave(event)"
+        ondrop="cellDrop(event,'${key}')"
+      >`;
+      if(total>0){
+        h+=`<div class="ptrack"><div class="pfill" style="width:${pct}%;background:${barColor(pct)}"></div></div>
+          <div class="pmeta"><span class="ppct ${pClass(pct)}">${pct}%</span><span class="pcnt">${done}/${total}</span></div>`;
+      }
+      h+=`<div class="tlist" id="tlist-${key}">`;
+      tasks.forEach((t,ti)=>{ h+=renderTaskRow(key,ti,t,false); });
+      h+=`</div>`;
+      h+=`<button class="abtn${total===0?' center':''}" onclick="openAdd('${key}')">+ tarefa</button>`;
+      h+=`</td>`;
+    });
+    h+=`<td class="act"><button style="background:none;border:none;cursor:pointer;font-size:.8rem;color:var(--text-faint);opacity:.35" onclick="delStage(${si})" title="Remover etapa">&#x2715;</button></td></tr>`;
+  });
+  h+=`<tr class="foot">
+    <td><button class="addrow" onclick="openAddStage()">+ Etapa</button></td>
+    <td colspan="${S.weeks.length}"><button class="addrow" onclick="openAddWeek()">+ Semana / Prazo</button></td>
+    <td></td>
+  </tr>`;
+  document.getElementById('tbody').innerHTML=h;
+}
+
+function renderTaskRow(key,ti,t,editMode){
+  if(editMode){
+    return `<div class="trow" data-key="${key}" data-ti="${ti}" draggable="false">
+      <span class="drag-handle" style="opacity:.3">&#8942;&#8942;</span>
+      <input type="checkbox" ${t.done?'checked':''} onclick="toggle('${key}',${ti})" />
+      <input class="ttxt-edit" id="ei-${key}-${ti}" type="text" value="${esc(t.text)}"
+        onkeydown="editKD(event,'${key}',${ti})"
+        onfocus="this.setSelectionRange(this.value.length,this.value.length)"
+      />
+      <div class="trow-actions">
+        <button class="icon-btn save" onclick="saveEdit('${key}',${ti})" title="Salvar">&#10003;</button>
+        <button class="icon-btn cancel" onclick="render()" title="Cancelar">&#x2715;</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="trow${t.done?' done':''}" data-key="${key}" data-ti="${ti}" draggable="true"
+    ondragstart="dStart(event,'${key}',${ti})"
+    ondragend="dEnd(event)"
+    ondragover="dOver(event,'${key}',${ti})"
+    ondragleave="dLeave(event)"
+  >
+    <span class="drag-handle" title="Arrastar para mover">&#8942;&#8942;</span>
+    <input type="checkbox" ${t.done?'checked':''} onclick="event.stopPropagation();toggle('${key}',${ti})" />
+    <span class="ttxt">${esc(t.text)}</span>
+    <div class="trow-actions">
+      <button class="icon-btn edit" onclick="startEdit('${key}',${ti})" title="Editar">&#9998;</button>
+      <button class="icon-btn del"  onclick="delTask('${key}',${ti})"   title="Remover">&#x2715;</button>
+    </div>
+  </div>`;
+}
+
+/* ── Edit ── */
+function startEdit(key,ti){
+  const row=document.querySelector(`[data-key="${key}"][data-ti="${ti}"]`);
+  if(row){row.outerHTML=renderTaskRow(key,ti,S.cells[key][ti],true);}
+  const inp=document.getElementById(`ei-${key}-${ti}`);
+  if(inp){setTimeout(()=>{inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);},30);}
+}
+function saveEdit(key,ti){
+  const inp=document.getElementById(`ei-${key}-${ti}`);
+  if(!inp)return;
+  const v=inp.value.trim();if(v)S.cells[key][ti].text=v;
+  save();render();
+}
+function editKD(e,key,ti){
+  if(e.key==='Enter'){e.preventDefault();saveEdit(key,ti);}
+  if(e.key==='Escape'){render();}
+}
+
+/* ── Drag & Drop ── */
+function dStart(e,key,ti){
+  drag={key,ti};e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',`${key}:${ti}`);
+  setTimeout(()=>e.target.classList.add('dragging'),0);
+}
+function dEnd(e){
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.drop-above,.drop-below').forEach(el=>el.classList.remove('drop-above','drop-below'));
+  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  drag={key:null,ti:null};
+}
+function dOver(e,targetKey,targetTi){
+  e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('.drop-above,.drop-below').forEach(el=>el.classList.remove('drop-above','drop-below'));
+  const row=document.querySelector(`[data-key="${targetKey}"][data-ti="${targetTi}"]`);
+  if(!row||drag.key===null)return;
+  const rect=row.getBoundingClientRect();
+  if(e.clientY<rect.top+rect.height/2)row.classList.add('drop-above');
+  else row.classList.add('drop-below');
+}
+function dLeave(e){e.currentTarget.classList.remove('drop-above','drop-below');}
+function cellDragOver(e,key){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  if(!document.querySelector('.drop-above,.drop-below'))e.currentTarget.classList.add('drag-over');
+}
+function cellDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function cellDrop(e,targetKey){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  document.querySelectorAll('.drop-above,.drop-below').forEach(el=>el.classList.remove('drop-above','drop-below'));
+  if(drag.key===null)return;
+  const srcKey=drag.key,srcTi=drag.ti;
+  if(!S.cells[srcKey])return;
+  const[task]=S.cells[srcKey].splice(srcTi,1);
+  if(!S.cells[srcKey].length)delete S.cells[srcKey];
+  if(!S.cells[targetKey])S.cells[targetKey]=[];
+  let dropTi=null,dropBefore=true;
+  document.querySelectorAll(`[data-key="${targetKey}"]`).forEach(row=>{
+    const ti=parseInt(row.getAttribute('data-ti'));
+    if(row.classList.contains('drop-above')){dropTi=ti;dropBefore=true;}
+    else if(row.classList.contains('drop-below')){dropTi=ti;dropBefore=false;}
+  });
+  if(dropTi===null){
+    S.cells[targetKey].push(task);
+  }else{
+    let at=dropBefore?dropTi:dropTi+1;
+    if(srcKey===targetKey&&srcTi<dropTi)at--;
+    at=Math.max(0,Math.min(at,S.cells[targetKey].length));
+    S.cells[targetKey].splice(at,0,task);
+  }
+  save();render();
+}
+
+/* ── Actions ── */
+function toggle(key,ti){if(!S.cells[key])return;S.cells[key][ti].done=!S.cells[key][ti].done;save();render();}
+function delTask(key,ti){S.cells[key].splice(ti,1);if(!S.cells[key].length)delete S.cells[key];save();render();}
+function delStage(si){
+  if(!confirm(`Remover "${S.stages[si].label}" e todas as tarefas?`))return;
+  S.stages.splice(si,1);
+  const nc={};
+  Object.entries(S.cells).forEach(([k,v])=>{const[s,w]=k.split('-').map(Number);if(s<si)nc[k]=v;else if(s>si)nc[`${s-1}-${w}`]=v;});
+  S.cells=nc;save();render();
+}
+function renameWeek(wi,v){if(v.trim())S.weeks[wi].label=v.trim();save();}
+function renameStage(si,v){if(v.trim())S.stages[si].label=v.trim();save();}
+
+/* ── Modal add ── */
+let mMode=null,mTarget=null;
+function openAdd(key){mMode='task';mTarget=key;showModal('Nova tarefa','Nome da tarefa...');}
+function openAddStage(){mMode='stage';showModal('Nova etapa',`Ex: Etapa ${S.stages.length+1}`);}
+function openAddWeek(){mMode='week';showModal('Nova semana / prazo',`Ex: Semana ${S.weeks.length+1}`);}
+function showModal(title,ph){
+  document.getElementById('add-title').textContent=title;
+  const inp=document.getElementById('add-input');inp.placeholder=ph;inp.value='';
+  document.getElementById('ov-add').classList.add('open');
+  setTimeout(()=>inp.focus(),80);
+}
+function closeAdd(){document.getElementById('ov-add').classList.remove('open');mMode=null;mTarget=null;}
+function confirmAdd(){
+  const v=document.getElementById('add-input').value.trim();if(!v){closeAdd();return;}
+  if(mMode==='task'){if(!S.cells[mTarget])S.cells[mTarget]=[];S.cells[mTarget].push({text:v,done:false});}
+  if(mMode==='stage'){S.stages.push({label:v});}
+  if(mMode==='week'){S.weeks.push({label:v,date:''});}
+  save();render();closeAdd();
+}
+
+/* ── Modal config ── */
+function openCfg(){
+  document.getElementById('cfg-token').value=CFG.token||'';
+  document.getElementById('cfg-gist').value=CFG.gistId||'';
+  document.getElementById('ov-cfg').classList.add('open');
+  setTimeout(()=>document.getElementById('cfg-token').focus(),80);
+}
+function closeCfg(){document.getElementById('ov-cfg').classList.remove('open');}
+async function saveCfgAndSync(){
+  const token=document.getElementById('cfg-token').value.trim();
+  const gistId=document.getElementById('cfg-gist').value.trim();
+  if(!token){alert('Cole o seu Token do GitHub.');return;}
+  CFG.token=token;CFG.gistId=gistId||null;saveCfgLocal();
+  closeCfg();hideBanner();await gistSave();render();
+}
+function clearCfg(){
+  if(!confirm('Desconectar do GitHub? Os dados locais permanecem.'))return;
+  CFG={};saveCfgLocal();closeCfg();setStatus('local','local');showBanner();
+}
+
+/* ── Banner ── */
+function hideBanner(){document.getElementById('banner').classList.add('hidden');}
+function showBanner(){document.getElementById('banner').classList.remove('hidden');}
+function dismissBanner(){hideBanner();localStorage.setItem('av_banner_off','1');}
+
+/* ── Keyboard ── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeAdd();closeCfg();}
+  if(e.key==='Enter'&&document.getElementById('ov-add').classList.contains('open'))confirmAdd();
+});
+document.getElementById('ov-add').addEventListener('click',e=>{if(e.target.id==='ov-add')closeAdd();});
+document.getElementById('ov-cfg').addEventListener('click',e=>{if(e.target.id==='ov-cfg')closeCfg();});
+
+/* ── Boot ── */
+async function boot(){
+  if(CFG.token||localStorage.getItem('av_banner_off'))hideBanner();
+  if(CFG.token){await gistLoad();}else{setStatus('local','local');}
+  render();
+}
+boot();
+</script>
+</body>
+</html>
