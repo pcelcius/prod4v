@@ -215,13 +215,18 @@ td.act{background:#f7f5f1;border-bottom:1px solid var(--border);padding:0 8px;ve
     <label>Token do GitHub (Personal Access Token)</label>
     <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"/>
     <p class="mhint">Acesse <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank">github.com/settings/tokens/new</a>, marque apenas <strong>gist</strong> e gere o token.</p>
-    <label>ID do Gist <span style="font-weight:400;color:var(--text-faint)">(deixe vazio na 1ª vez)</span></label>
-    <input type="text" id="cfg-gist" placeholder="Será preenchido automaticamente..." autocomplete="off"/>
-    <p class="mhint">Na primeira vez deixe vazio — o Gist é criado automaticamente.</p>
+    <label>ID do Gist <span style="font-weight:400;color:var(--text-faint)">(deixe vazio só na 1ª vez, em uma máquina nova)</span></label>
+    <input type="text" id="cfg-gist" placeholder="Deixe vazio para criar um Gist novo..." autocomplete="off" oninput="updateCfgBtn()"/>
+    <div id="cfg-hint-load" class="mhint" style="display:none;background:#eef4ff;border:1px solid #c0d4f0;border-radius:6px;padding:8px 10px;color:#2c4a7c">
+      &#8681; Você informou um ID de Gist existente. Ao confirmar, os dados serão <strong>carregados da nuvem</strong> para esta máquina — nenhum dado local será enviado.
+    </div>
+    <div id="cfg-hint-new" class="mhint" style="display:none;background:#eef7f1;border:1px solid #b0ddc0;border-radius:6px;padding:8px 10px;color:#2a6b3c">
+      &#8679; Campo vazio: um Gist novo será criado e os dados atuais desta máquina serão salvos nele.
+    </div>
     <div class="mbtns">
       <button class="btn d" onclick="clearCfg()">Desconectar</button>
       <button class="btn" onclick="closeCfg()">Cancelar</button>
-      <button class="btn p" onclick="saveCfgAndSync()">Salvar e Sincronizar</button>
+      <button class="btn p" id="cfg-confirm-btn" onclick="saveCfgAndSync()">Conectar e Carregar</button>
     </div>
   </div>
 </div>
@@ -579,15 +584,33 @@ function openCfg(){
   document.getElementById('cfg-token').value=CFG.token||'';
   document.getElementById('cfg-gist').value=CFG.gistId||'';
   document.getElementById('ov-cfg').classList.add('open');
+  updateCfgBtn();
   setTimeout(()=>document.getElementById('cfg-token').focus(),80);
 }
 function closeCfg(){document.getElementById('ov-cfg').classList.remove('open');}
+
+function updateCfgBtn(){
+  const hasGist=document.getElementById('cfg-gist').value.trim()!=='';
+  document.getElementById('cfg-confirm-btn').textContent=hasGist?'Conectar e Carregar':'Conectar e Criar';
+  document.getElementById('cfg-hint-load').style.display=hasGist?'block':'none';
+  document.getElementById('cfg-hint-new').style.display=hasGist?'none':'block';
+}
+
 async function saveCfgAndSync(){
   const token=document.getElementById('cfg-token').value.trim();
   const gistId=document.getElementById('cfg-gist').value.trim();
   if(!token){alert('Cole o seu Token do GitHub.');return;}
   CFG.token=token;CFG.gistId=gistId||null;saveCfgLocal();
-  closeCfg();hideBanner();await gistSave();render();
+  closeCfg();hideBanner();
+  if(CFG.gistId){
+    /* Gist existente → CARREGAR da nuvem (nunca sobrescrever) */
+    const ok=await gistLoad();
+    if(!ok){alert('Não foi possível carregar os dados do Gist.\nVerifique se o token e o ID estão corretos.');}
+  }else{
+    /* Gist novo → criar e salvar estado atual */
+    await gistSave();
+  }
+  render();
 }
 function clearCfg(){
   if(!confirm('Desconectar do GitHub? Os dados locais permanecem.'))return;
